@@ -1,9 +1,9 @@
-
-# Civic Connect
+# Civic-Connect-Management-System
 ## Government Public Service Management System
 
-Civic Connect is a B.Tech third-year academic project prototype built with
-Python, Flask, MySQL, HTML, CSS, and JavaScript.
+Civic Connect is a complaint filing and public service management system, built
+as a B.Tech third-year academic project prototype with Python, Flask, MySQL,
+HTML, CSS, and JavaScript.
 
 ## Features
 
