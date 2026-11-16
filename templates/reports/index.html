@@ -1,0 +1,30 @@
+
+{% extends "base.html" %}
+{% block title %}Reports | Civic Connect{% endblock %}
+
+{% block content %}
+<h1>Complaint reports</h1>
+<section class="grid four">
+    <article class="stat-card"><span>Total complaints</span><strong>{{ summary.total or 0 }}</strong></article>
+    <article class="stat-card"><span>Urgent</span><strong>{{ summary.urgent or 0 }}</strong></article>
+    <article class="stat-card"><span>High priority</span><strong>{{ summary.high or 0 }}</strong></article>
+    <article class="stat-card"><span>Resolved</span><strong>{{ summary.resolved or 0 }}</strong></article>
+</section>
+
+<section class="grid two">
+    <article class="card">
+        <h2>Complaints by status</h2>
+        <div class="table-wrap"><table>
+        <thead><tr><th>Status</th><th>Count</th></tr></thead>
+        <tbody>{% for row in status_rows %}<tr><td>{{ row.status }}</td><td>{{ row.total }}</td></tr>{% else %}<tr><td colspan="2">No complaint data.</td></tr>{% endfor %}</tbody>
+        </table></div>
+    </article>
+    <article class="card">
+        <h2>Complaints by department</h2>
+        <div class="table-wrap"><table>
+        <thead><tr><th>Department</th><th>Count</th></tr></thead>
+        <tbody>{% for row in department_rows %}<tr><td>{{ row.department_name }}</td><td>{{ row.total }}</td></tr>{% else %}<tr><td colspan="2">No departments found.</td></tr>{% endfor %}</tbody>
+        </table></div>
+    </article>
+</section>
+{% endblock %}

@@ -1,0 +1,453 @@
+
+{% extends "base.html" %}
+
+{% block title %}Submit Complaint - Civic Connect{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="mb-4">
+        <h2 class="fw-bold">Submit a Complaint</h2>
+        <p class="text-muted">
+            Report a civic problem. Your complaint will be assigned
+            automatically to an available officer.
+        </p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+
+            <form method="POST"
+                  action="{{ url_for('complaints.create') }}"
+                  enctype="multipart/form-data">
+
+                <!-- Complaint Title -->
+                <div class="mb-3">
+                    <label for="title" class="form-label fw-semibold">
+                        Complaint Title <span class="text-danger">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="title"
+                        name="title"
+                        maxlength="180"
+                        placeholder="Example: Streetlight not working"
+                        value="{{ request.form.get('title', '') }}"
+                        required>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-3">
+                    <label for="description" class="form-label fw-semibold">
+                        Problem Description <span class="text-danger">*</span>
+                    </label>
+
+                    <textarea
+                        class="form-control"
+                        id="description"
+                        name="description"
+                        rows="5"
+                        placeholder="Describe the problem in detail..."
+                        required>{{ request.form.get('description', '') }}</textarea>
+                </div>
+
+                <!-- Category -->
+                <div class="mb-3">
+                    <label for="category" class="form-label fw-semibold">
+                        Complaint Category <span class="text-danger">*</span>
+                    </label>
+
+                    {% set categories = [
+                        'Roads',
+                        'Water Supply',
+                        'Electricity',
+                        'Streetlights',
+                        'Garbage Collection',
+                        'Drainage',
+                        'Sanitation',
+                        'Other'
+                    ] %}
+
+                    <select class="form-select"
+                            id="category"
+                            name="category"
+                            required>
+
+                        <option value="">Select Category</option>
+
+                        {% for item in categories %}
+                            <option value="{{ item }}"
+                                {% if request.form.get('category') == item %}
+                                    selected
+                                {% endif %}>
+                                {{ item }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <!-- Department -->
+                <div class="mb-3">
+                    <label for="department_id" class="form-label fw-semibold">
+                        Responsible Department
+                        <span class="text-danger">*</span>
+                    </label>
+
+                    <select class="form-select"
+                            id="department_id"
+                            name="department_id"
+                            required>
+
+                        <option value="">Select Department</option>
+
+                        {% for department in departments %}
+                            <option value="{{ department.id }}"
+                                {% if request.form.get('department_id', '')|string == department.id|string %}
+                                    selected
+                                {% endif %}>
+                                {{ department.name }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+
+                    <div class="form-text">
+                        An active officer from this department will be
+                        assigned automatically when available.
+                    </div>
+                </div>
+
+                <!-- Problem Address -->
+                <div class="mb-3">
+                    <label for="location" class="form-label fw-semibold">
+                        Problem Address
+                    </label>
+
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="location"
+                        name="location"
+                        maxlength="255"
+                        placeholder="Enter street, area or nearby landmark"
+                        value="{{ request.form.get('location', '') }}">
+                </div>
+
+                <!-- Interactive Location Map -->
+                <div class="mb-4">
+
+                    <label class="form-label fw-semibold">
+                        Select Exact Problem Location
+                    </label>
+
+                    <p class="text-muted small">
+                        Click anywhere on the map to mark the problem
+                        location or use your current location.
+                    </p>
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-primary btn-sm mb-3"
+                        id="currentLocationBtn">
+                        <i class="bi bi-geo-alt"></i>
+                        Use My Current Location
+                    </button>
+
+                    <div id="complaintMap"
+                         style="height: 350px;
+                                width: 100%;
+                                border-radius: 10px;
+                                z-index: 1;">
+                    </div>
+
+                    <!-- Hidden Coordinates -->
+                    <input
+                        type="hidden"
+                        name="latitude"
+                        id="latitude"
+                        value="{{ request.form.get('latitude', '') }}">
+
+                    <input
+                        type="hidden"
+                        name="longitude"
+                        id="longitude"
+                        value="{{ request.form.get('longitude', '') }}">
+
+                    <div class="alert alert-light border mt-3 mb-0">
+                        <small id="selectedLocation">
+                            No map location selected yet.
+                        </small>
+                    </div>
+
+                </div>
+
+                <!-- Photo Upload -->
+                <div class="mb-4">
+
+                    <label for="photo" class="form-label fw-semibold">
+                        Upload Complaint Photo (Optional)
+                    </label>
+
+                    <input
+                        type="file"
+                        class="form-control"
+                        id="photo"
+                        name="photo"
+                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+
+                    <div class="form-text">
+                        Accepted formats: JPG, JPEG, PNG and WEBP.
+                        Maximum size: 5 MB.
+                    </div>
+
+                    <!-- Photo Preview -->
+                    <div id="photoPreviewContainer"
+                         class="mt-3 d-none">
+
+                        <p class="fw-semibold">Photo Preview</p>
+
+                        <img
+                            id="photoPreview"
+                            src=""
+                            alt="Complaint photo preview"
+                            class="img-thumbnail"
+                            style="max-height: 300px;
+                                   max-width: 100%;">
+                    </div>
+
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="d-flex flex-wrap gap-2">
+
+                    <button type="submit" class="btn btn-primary">
+                        Submit Complaint
+                    </button>
+
+                    <a href="{{ url_for('citizen.dashboard') }}"
+                       class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Information -->
+    <div class="alert alert-info mt-4">
+        <strong>What happens next?</strong>
+        Your complaint will be saved in the database. The system will
+        automatically assign an active officer from the selected
+        department when available. You can track your complaint
+        from the My Complaints page.
+    </div>
+
+</div>
+
+
+<!-- Leaflet Map CSS -->
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+
+<!-- Leaflet Map JavaScript -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const latitudeInput = document.getElementById("latitude");
+    const longitudeInput = document.getElementById("longitude");
+    const locationText = document.getElementById("selectedLocation");
+
+    // Default map location: India
+    const defaultLatitude = 20.5937;
+    const defaultLongitude = 78.9629;
+
+    // Create map
+    const map = L.map("complaintMap").setView(
+        [defaultLatitude, defaultLongitude],
+        5
+    );
+
+    // OpenStreetMap layer
+    L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 19
+        }
+    ).addTo(map);
+
+    let marker = null;
+
+    // Select location
+    function selectLocation(lat, lng) {
+
+        latitudeInput.value = lat.toFixed(7);
+        longitudeInput.value = lng.toFixed(7);
+
+        if (marker) {
+            marker.setLatLng([lat, lng]);
+        } else {
+            marker = L.marker([lat, lng]).addTo(map);
+        }
+
+        locationText.textContent =
+            "Selected Latitude: " + lat.toFixed(7) +
+            " | Longitude: " + lng.toFixed(7);
+
+        map.setView([lat, lng], 16);
+    }
+
+    // Restore previously selected location
+    const savedLat = latitudeInput.value;
+    const savedLng = longitudeInput.value;
+
+    if (savedLat !== "" && savedLng !== "") {
+
+        const lat = Number(savedLat);
+        const lng = Number(savedLng);
+
+        if (
+            Number.isFinite(lat) &&
+            Number.isFinite(lng) &&
+            lat >= -90 && lat <= 90 &&
+            lng >= -180 && lng <= 180
+        ) {
+            selectLocation(lat, lng);
+        }
+    }
+
+    // Click map to select location
+    map.on("click", function (event) {
+
+        selectLocation(
+            event.latlng.lat,
+            event.latlng.lng
+        );
+
+    });
+
+    // Get current device location
+    document.getElementById("currentLocationBtn")
+        .addEventListener("click", function () {
+
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your browser.");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+
+                function (position) {
+
+                    selectLocation(
+                        position.coords.latitude,
+                        position.coords.longitude
+                    );
+
+                },
+
+                function () {
+
+                    alert(
+                        "Unable to access your location. Please allow location permission or select a location manually."
+                    );
+
+                },
+
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000
+                }
+
+            );
+
+        });
+
+    // Photo preview
+    const photoInput = document.getElementById("photo");
+
+    const previewContainer =
+        document.getElementById("photoPreviewContainer");
+
+    const photoPreview =
+        document.getElementById("photoPreview");
+
+    let previewUrl = null;
+
+    photoInput.addEventListener("change", function () {
+
+        const file = this.files[0];
+
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+            previewUrl = null;
+        }
+
+        if (!file) {
+            previewContainer.classList.add("d-none");
+            photoPreview.removeAttribute("src");
+            return;
+        }
+
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+        ];
+
+        if (!allowedTypes.includes(file.type)) {
+
+            alert("Please select a JPG, PNG or WEBP image.");
+
+            this.value = "";
+            previewContainer.classList.add("d-none");
+            return;
+
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+
+            alert("Photo size must not exceed 5 MB.");
+
+            this.value = "";
+            previewContainer.classList.add("d-none");
+            return;
+
+        }
+
+        previewUrl = URL.createObjectURL(file);
+
+        photoPreview.src = previewUrl;
+        previewContainer.classList.remove("d-none");
+
+    });
+
+});
+</script>
+
+{% endblock %}

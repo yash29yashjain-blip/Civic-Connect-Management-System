@@ -1,0 +1,64 @@
+
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard | Civic Connect{% endblock %}
+
+{% block content %}
+
+<h1>Admin Dashboard</h1>
+
+<p>Welcome to the Civic Connect Administration Panel.</p>
+
+<!-- Dashboard Statistics -->
+<section class="stats-grid">
+
+    <div class="card">
+        <h3>Total Users</h3>
+        <h2>{{ stats.users }}</h2>
+    </div>
+
+    <div class="card">
+        <h3>Total Complaints</h3>
+        <h2>{{ stats.complaints }}</h2>
+    </div>
+
+    <div class="card">
+        <h3>Submitted Complaints</h3>
+        <h2>{{ stats.submitted }}</h2>
+    </div>
+
+    <div class="card">
+        <h3>Resolved Complaints</h3>
+        <h2>{{ stats.resolved }}</h2>
+    </div>
+
+</section>
+
+<!-- Admin Management Options -->
+<section class="card">
+
+    <h2>Management Options</h2>
+
+    <div class="dashboard-actions">
+
+        <a href="{{ url_for('admin.departments') }}" class="btn">
+            Manage Departments
+        </a>
+
+        <a href="{{ url_for('admin.employees') }}" class="btn">
+            Manage Employees
+        </a>
+
+        <a href="{{ url_for('admin.resources') }}" class="btn">
+            Manage Resources
+        </a>
+
+        <a href="{{ url_for('admin.complaint_assignments') }}" class="btn">
+            Assign Complaints
+        </a>
+
+    </div>
+
+</section>
+
+{% endblock %}

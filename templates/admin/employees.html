@@ -1,0 +1,35 @@
+
+{% extends "base.html" %}
+{% block title %}Employees | Civic Connect{% endblock %}
+
+{% block content %}
+<h1>Officer management</h1>
+<section class="card">
+    <h2>Create officer account</h2>
+    <form method="post" class="form-grid">
+        <div><label for="full_name">Full name</label><input id="full_name" name="full_name" required></div>
+        <div><label for="email">Email</label><input id="email" type="email" name="email" required></div>
+        <div><label for="password">Temporary password</label><input id="password" type="password" name="password" minlength="8" required></div>
+        <div><label for="department_id">Department</label>
+            <select id="department_id" name="department_id" required>
+                {% for d in departments %}<option value="{{ d.id }}">{{ d.name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div><label for="designation">Designation</label><input id="designation" name="designation" value="Public Service Officer"></div>
+        <button class="btn" type="submit">Create officer</button>
+    </form>
+</section>
+
+<section class="card">
+<h2>Registered officers</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Designation</th><th>Active</th></tr></thead>
+<tbody>
+{% for e in employees %}
+<tr><td>{{ e.full_name }}</td><td>{{ e.email }}</td><td>{{ e.department_name }}</td><td>{{ e.designation }}</td><td>{{ 'Yes' if e.active else 'No' }}</td></tr>
+{% else %}
+<tr><td colspan="5">No officers registered yet.</td></tr>
+{% endfor %}
+</tbody></table></div>
+</section>
+{% endblock %}

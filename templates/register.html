@@ -1,0 +1,30 @@
+
+{% extends "base.html" %}
+{% block title %}Register | Civic Connect{% endblock %}
+
+{% block content %}
+<section class="form-card">
+    <h1>Create a citizen account</h1>
+    <p class="muted">All fields marked required must be completed.</p>
+    <form method="post">
+        <label for="full_name">Full name *</label>
+        <input id="full_name" name="full_name" maxlength="120" required>
+
+        <label for="email">Email address *</label>
+        <input id="email" type="email" name="email" maxlength="150" required>
+
+        <label for="password">Password *</label>
+        <input id="password" type="password" name="password" minlength="8" required autocomplete="new-password">
+        <small>Use at least 8 characters.</small>
+
+        <label for="phone">Phone</label>
+        <input id="phone" name="phone" maxlength="25">
+
+        <label for="address">Address</label>
+        <textarea id="address" name="address" rows="3" maxlength="255"></textarea>
+
+        <button class="btn full" type="submit">Create account</button>
+    </form>
+    <p>Already registered? <a href="{{ url_for('auth.login') }}">Login</a>.</p>
+</section>
+{% endblock %}

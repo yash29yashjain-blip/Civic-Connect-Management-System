@@ -1,0 +1,33 @@
+
+{% extends "base.html" %}
+{% block title %}Manage Complaints | Civic Connect{% endblock %}
+
+{% block content %}
+<h1>Manage assigned complaints</h1>
+<p class="muted">Update the status and add notes for complaints assigned to your account.</p>
+
+{% for c in complaints %}
+<section class="card complaint-card">
+    <div class="section-heading">
+        <div><p class="eyebrow">COMPLAINT #{{ c.id }}</p><h2>{{ c.title }}</h2></div>
+        <span class="status">{{ c.status }}</span>
+    </div>
+    <p>{{ c.description }}</p>
+    <p class="muted">Citizen: {{ c.citizen_name }} · Priority: {{ c.priority }} · {{ c.created_at }}</p>
+    <form method="post" class="inline-form">
+        <input type="hidden" name="complaint_id" value="{{ c.id }}">
+        <label for="status-{{ c.id }}">Status</label>
+        <select id="status-{{ c.id }}" name="status">
+            {% for status in ['Assigned', 'In Progress', 'Resolved', 'Rejected'] %}
+                <option value="{{ status }}" {% if c.status == status %}selected{% endif %}>{{ status }}</option>
+            {% endfor %}
+        </select>
+        <label for="notes-{{ c.id }}">Officer notes</label>
+        <textarea id="notes-{{ c.id }}" name="officer_notes" rows="2">{{ c.officer_notes or '' }}</textarea>
+        <button class="btn" type="submit">Save update</button>
+    </form>
+</section>
+{% else %}
+<section class="card"><p>No complaints are currently assigned to you.</p></section>
+{% endfor %}
+{% endblock %}

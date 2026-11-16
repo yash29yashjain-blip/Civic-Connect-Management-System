@@ -1,0 +1,49 @@
+
+{% extends "base.html" %}
+{% block title %}Citizen Dashboard | Civic Connect{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">CITIZEN PORTAL</p>
+        <h1>Hello, {{ session.get('full_name') }}</h1>
+        <p class="muted">View your complaints and their latest status.</p>
+    </div>
+    <a class="btn" href="{{ url_for('complaints.create') }}">+ New complaint</a>
+</div>
+
+<section class="grid four">
+    <article class="stat-card"><span>Total complaints</span><strong>{{ stats.total or 0 }}</strong></article>
+    <article class="stat-card"><span>Submitted</span><strong>{{ stats.submitted or 0 }}</strong></article>
+    <article class="stat-card"><span>In progress</span><strong>{{ stats.in_progress or 0 }}</strong></article>
+    <article class="stat-card"><span>Resolved</span><strong>{{ stats.resolved or 0 }}</strong></article>
+</section>
+
+<section class="card">
+    <div class="section-heading">
+        <h2>Recent complaints</h2>
+        <a href="{{ url_for('citizen.my_complaints') }}">View all</a>
+    </div>
+    {% if complaints %}
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>ID</th><th>Title</th><th>Department</th><th>Priority</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+            {% for complaint in complaints %}
+                <tr>
+                    <td>#{{ complaint.id }}</td>
+                    <td><a href="{{ url_for('complaints.detail', complaint_id=complaint.id) }}">{{ complaint.title }}</a></td>
+                    <td>{{ complaint.department_name or 'Not assigned' }}</td>
+                    <td>{{ complaint.priority }}</td>
+                    <td><span class="status">{{ complaint.status }}</span></td>
+                    <td>{{ complaint.created_at }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p>You have not submitted any complaints yet.</p>
+    {% endif %}
+</section>
+{% endblock %}

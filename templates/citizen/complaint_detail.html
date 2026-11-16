@@ -1,0 +1,263 @@
+
+{% extends "base.html" %}
+
+{% block title %}Complaint Details - Civic Connect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Page Heading -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Complaint Details</h2>
+            <p class="text-muted mb-0">
+                View complaint information and track its progress.
+            </p>
+        </div>
+
+        <a href="{{ url_for('citizen.my_complaints') }}"
+           class="btn btn-outline-secondary">
+            Back to My Complaints
+        </a>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show"
+                     role="alert">
+                    {{ message }}
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Complaint Summary -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                <div>
+                    <p class="text-muted mb-1">
+                        Complaint ID: #{{ complaint.id }}
+                    </p>
+                    <h3 class="fw-bold">{{ complaint.title }}</h3>
+                </div>
+
+                {% set status_colors = {
+                    'Submitted': 'secondary',
+                    'Assigned': 'primary',
+                    'In Progress': 'warning',
+                    'Resolved': 'success',
+                    'Rejected': 'danger'
+                } %}
+
+                <span class="badge text-bg-{{ status_colors.get(complaint.status, 'secondary') }} fs-6">
+                    {{ complaint.status }}
+                </span>
+            </div>
+
+            <hr>
+
+            <!-- Complaint Information -->
+            <div class="row g-4">
+
+                <div class="col-md-6">
+                    <h6 class="text-muted">Category</h6>
+                    <p>{{ complaint.category }}</p>
+                </div>
+
+                <div class="col-md-6">
+                    <h6 class="text-muted">Priority</h6>
+                    {% if complaint.priority == 'Urgent' %}
+                        <span class="badge text-bg-danger">Urgent</span>
+                    {% elif complaint.priority == 'High' %}
+                        <span class="badge text-bg-warning">High</span>
+                    {% elif complaint.priority == 'Medium' %}
+                        <span class="badge text-bg-info">Medium</span>
+                    {% else %}
+                        <span class="badge text-bg-secondary">
+                            {{ complaint.priority }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6">
+                    <h6 class="text-muted">Department</h6>
+                    <p>{{ complaint.department_name or 'Not assigned' }}</p>
+                </div>
+
+                <div class="col-md-6">
+                    <h6 class="text-muted">Assigned Officer</h6>
+                    <p>
+                        {{ complaint.officer_name or 'Waiting for assignment' }}
+                    </p>
+                </div>
+
+                <div class="col-md-6">
+                    <h6 class="text-muted">Problem Location</h6>
+                    <p>{{ complaint.location or 'Not provided' }}</p>
+                </div>
+
+                <div class="col-md-6">
+                    <h6 class="text-muted">Submitted On</h6>
+                    <p>
+                        {{ complaint.created_at.strftime('%d %b %Y, %I:%M %p')
+                           if complaint.created_at else 'Not available' }}
+                    </p>
+                </div>
+
+                <div class="col-md-6">
+                    <h6 class="text-muted">Last Updated</h6>
+                    <p>
+                        {{ complaint.updated_at.strftime('%d %b %Y, %I:%M %p')
+                           if complaint.updated_at else 'Not available' }}
+                    </p>
+                </div>
+
+                <div class="col-12">
+                    <h6 class="text-muted">Problem Description</h6>
+                    <div class="bg-light rounded p-3"
+                         style="white-space: pre-wrap;">{{ complaint.description }}</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Uploaded Complaint Photo -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">Complaint Photo</h5>
+
+            {% if complaint.photo_filename %}
+                <a href="{{ url_for('static', filename='uploads/complaints/' + complaint.photo_filename) }}"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    <img
+                        src="{{ url_for('static', filename='uploads/complaints/' + complaint.photo_filename) }}"
+                        alt="Photo uploaded for complaint #{{ complaint.id }}"
+                        class="img-fluid rounded border"
+                        style="max-height: 450px; object-fit: contain;">
+                </a>
+
+                <p class="text-muted small mt-2 mb-0">
+                    Click the image to view it in a separate tab.
+                </p>
+            {% else %}
+                <p class="text-muted mb-0">
+                    No photo was uploaded for this complaint.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Complaint Tracking -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">Complaint Tracking</h5>
+
+            {% if complaint.status == 'Rejected' %}
+                <div class="alert alert-danger mb-0">
+                    <strong>Complaint rejected.</strong>
+                    Please review the officer's notes below, if provided.
+                </div>
+
+            {% elif complaint.status == 'Resolved' %}
+                <div class="alert alert-success mb-0">
+                    <strong>Complaint resolved!</strong>
+                    Your complaint has been marked as resolved.
+                </div>
+
+            {% else %}
+                <div class="d-flex flex-column gap-3">
+
+                    {% set tracking_steps = [
+                        'Submitted',
+                        'Assigned',
+                        'In Progress',
+                        'Resolved'
+                    ] %}
+
+                    {% for step in tracking_steps %}
+                        {% set step_index = loop.index0 %}
+                        {% set current_index = tracking_steps.index(complaint.status)
+                            if complaint.status in tracking_steps else 0 %}
+
+                        <div class="d-flex align-items-start gap-3">
+                            {% if step_index <= current_index %}
+                                <span class="badge text-bg-success rounded-circle p-2">
+                                    &#10003;
+                                </span>
+                            {% else %}
+                                <span class="badge text-bg-secondary rounded-circle p-2">
+                                    {{ loop.index }}
+                                </span>
+                            {% endif %}
+
+                            <div>
+                                <strong>{{ step }}</strong>
+
+                                {% if step == 'Submitted' %}
+                                    <p class="text-muted small mb-0">
+                                        Your complaint has been registered.
+                                    </p>
+                                {% elif step == 'Assigned' %}
+                                    <p class="text-muted small mb-0">
+                                        The complaint has been assigned to an officer.
+                                    </p>
+                                {% elif step == 'In Progress' %}
+                                    <p class="text-muted small mb-0">
+                                        The officer is working on the problem.
+                                    </p>
+                                {% elif step == 'Resolved' %}
+                                    <p class="text-muted small mb-0">
+                                        The complaint has been resolved.
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                    {% if complaint.status == 'Submitted' and not complaint.assigned_officer_id %}
+                        <p class="text-muted small mb-0">
+                            Your complaint is waiting for an available officer.
+                        </p>
+                    {% endif %}
+
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Officer Notes -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">Officer's Remarks</h5>
+
+            {% if complaint.officer_notes %}
+                <div class="bg-light rounded p-3"
+                     style="white-space: pre-wrap;">{{ complaint.officer_notes }}</div>
+            {% else %}
+                <p class="text-muted mb-0">
+                    No remarks have been added yet.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Footer Action -->
+    <div class="mb-4">
+        <a href="{{ url_for('citizen.my_complaints') }}"
+           class="btn btn-primary">
+            View All My Complaints
+        </a>
+    </div>
+
+</div>
+{% endblock %}

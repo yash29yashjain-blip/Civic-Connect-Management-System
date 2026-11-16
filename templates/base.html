@@ -1,0 +1,59 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Civic Connect{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<header class="site-header">
+    <a class="brand" href="{{ url_for('index') }}">Civic Connect</a>
+    <nav>
+        {% if session.get('user_id') %}
+            {% if session.get('role') == 'citizen' %}
+                <a href="{{ url_for('citizen.dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('citizen.my_complaints') }}">My Complaints</a>
+                <a href="{{ url_for('complaints.create') }}">New Complaint</a>
+            {% elif session.get('role') == 'officer' %}
+                <a href="{{ url_for('officer.dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('officer.manage_complaints') }}">Manage Complaints</a>
+                <a href="{{ url_for('os_simulation.simulator') }}">OS Simulator</a>
+            {% elif session.get('role') == 'admin' %}
+                <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('admin.departments') }}">Departments</a>
+                <a href="{{ url_for('admin.employees') }}">Employees</a>
+                <a href="{{ url_for('admin.resources') }}">Resources</a>
+                <a href="{{ url_for('reports.index') }}">Reports</a>
+                <a href="{{ url_for('os_simulation.simulator') }}">OS Simulator</a>
+            {% endif %}
+            <span class="nav-user">{{ session.get('full_name') }}</span>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        {% else %}
+            <a href="{{ url_for('auth.login') }}">Login</a>
+            <a href="{{ url_for('auth.register') }}">Register</a>
+        {% endif %}
+    </nav>
+</header>
+
+<main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+    <p>Civic Connect · Government Public Service Management System</p>
+    <p class="muted">Academic project prototype</p>
+</footer>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

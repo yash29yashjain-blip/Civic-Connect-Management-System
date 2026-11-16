@@ -1,0 +1,202 @@
+
+{% extends "base.html" %}
+
+{% block title %}
+Resources | Civic Connect
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Resource Management</h1>
+
+    <!-- ADD RESOURCE SECTION -->
+
+    <section class="card">
+
+        <h2>Add Resource</h2>
+
+        {% if departments %}
+
+        <form
+            method="POST"
+            action="{{ url_for('admin.resources') }}"
+            class="form-grid"
+        >
+
+            <div>
+                <label for="department_id">
+                    Department
+                </label>
+
+                <select
+                    id="department_id"
+                    name="department_id"
+                    required
+                >
+
+                    <option value="">
+                        Select Department
+                    </option>
+
+                    {% for d in departments %}
+
+                    <option value="{{ d.id }}">
+                        {{ d.name }}
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+            </div>
+
+
+            <div>
+                <label for="name">
+                    Resource Name
+                </label>
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    maxlength="150"
+                    placeholder="Example: Ambulance"
+                    required
+                >
+            </div>
+
+
+            <div>
+                <label for="resource_type">
+                    Resource Type
+                </label>
+
+                <input
+                    type="text"
+                    id="resource_type"
+                    name="resource_type"
+                    maxlength="100"
+                    placeholder="Vehicle, Staff, Equipment"
+                    required
+                >
+            </div>
+
+
+            <div>
+                <label for="quantity">
+                    Total Quantity
+                </label>
+
+                <input
+                    type="number"
+                    id="quantity"
+                    name="quantity"
+                    min="1"
+                    required
+                    placeholder="Enter quantity"
+                >
+            </div>
+
+
+            <button
+                type="submit"
+                class="btn"
+            >
+                Add Resource
+            </button>
+
+        </form>
+
+        {% else %}
+
+        <p>
+            No departments are available.
+            Please add a department first.
+        </p>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- CURRENT RESOURCES SECTION -->
+
+    <section class="card">
+
+        <h2>Current Resources</h2>
+
+        <div class="table-wrap">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Resource Name</th>
+                        <th>Resource Type</th>
+                        <th>Department</th>
+                        <th>Total Quantity</th>
+                        <th>Available Quantity</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for r in resources %}
+
+                    <tr>
+
+                        <td>
+                            {{ r.id }}
+                        </td>
+
+                        <td>
+                            {{ r.name }}
+                        </td>
+
+                        <td>
+                            {{ r.resource_type }}
+                        </td>
+
+                        <td>
+                            {{ r.department_name }}
+                        </td>
+
+                        <td>
+                            {{ r.quantity }}
+                        </td>
+
+                        <td>
+                            {{ r.available_quantity }}
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+
+                        <td colspan="6">
+                            No resources have been added yet.
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,37 @@
+
+{% extends "base.html" %}
+{% block title %}Officer Dashboard | Civic Connect{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div><p class="eyebrow">OFFICER PORTAL</p><h1>Officer dashboard</h1>
+    <p class="muted">Review the complaints assigned to you.</p></div>
+    <a class="btn" href="{{ url_for('officer.manage_complaints') }}">Manage complaints</a>
+</div>
+
+<section class="grid four">
+    <article class="stat-card"><span>Total assigned</span><strong>{{ stats.total or 0 }}</strong></article>
+    <article class="stat-card"><span>Assigned</span><strong>{{ stats.assigned or 0 }}</strong></article>
+    <article class="stat-card"><span>In progress</span><strong>{{ stats.in_progress or 0 }}</strong></article>
+    <article class="stat-card"><span>Resolved</span><strong>{{ stats.resolved or 0 }}</strong></article>
+</section>
+
+<section class="card">
+<h2>Recent assigned complaints</h2>
+{% if complaints %}
+<div class="table-wrap"><table>
+<thead><tr><th>ID</th><th>Citizen</th><th>Title</th><th>Department</th><th>Priority</th><th>Status</th></tr></thead>
+<tbody>
+{% for c in complaints %}
+<tr>
+<td>#{{ c.id }}</td><td>{{ c.citizen_name }}</td>
+<td>{{ c.title }}</td><td>{{ c.department_name or 'Not assigned' }}</td>
+<td>{{ c.priority }}</td><td><span class="status">{{ c.status }}</span></td>
+</tr>
+{% endfor %}
+</tbody></table></div>
+{% else %}
+<p>No complaints have been assigned to you.</p>
+{% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,197 @@
+
+{% extends "base.html" %}
+
+{% block title %}My Complaints - Civic Connect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Page Heading -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">My Complaints</h2>
+            <p class="text-muted mb-0">
+                View your submitted complaints and track their progress.
+            </p>
+        </div>
+
+        <a href="{{ url_for('complaints.create') }}"
+           class="btn btn-primary">
+            + Submit New Complaint
+        </a>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show"
+                     role="alert">
+                    {{ message }}
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Complaint List -->
+    {% if complaints %}
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" class="ps-3">Complaint ID</th>
+                                <th scope="col">Complaint</th>
+                                <th scope="col">Department</th>
+                                <th scope="col">Assigned Officer</th>
+                                <th scope="col">Priority</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Submitted On</th>
+                                <th scope="col" class="text-center">Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for complaint in complaints %}
+
+                                {% set status_colors = {
+                                    'Submitted': 'secondary',
+                                    'Assigned': 'primary',
+                                    'In Progress': 'warning',
+                                    'Resolved': 'success',
+                                    'Rejected': 'danger'
+                                } %}
+
+                                {% set priority_colors = {
+                                    'Low': 'secondary',
+                                    'Medium': 'info',
+                                    'High': 'warning',
+                                    'Urgent': 'danger'
+                                } %}
+
+                                <tr>
+                                    <!-- Complaint ID -->
+                                    <td class="ps-3">
+                                        <span class="fw-semibold">
+                                            #{{ complaint.id }}
+                                        </span>
+                                    </td>
+
+                                    <!-- Complaint Title and Category -->
+                                    <td>
+                                        <div class="fw-semibold">
+                                            {{ complaint.title }}
+                                        </div>
+                                        <small class="text-muted">
+                                            {{ complaint.category }}
+                                        </small>
+
+                                        {% if complaint.photo_filename %}
+                                            <div class="mt-1">
+                                                <small class="text-success">
+                                                    <i class="bi bi-camera"></i>
+                                                    Photo attached
+                                                </small>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- Department -->
+                                    <td>
+                                        {{ complaint.department_name or 'Not assigned' }}
+                                    </td>
+
+                                    <!-- Officer -->
+                                    <td>
+                                        {% if complaint.officer_name is defined and complaint.officer_name %}
+                                            {{ complaint.officer_name }}
+                                        {% elif complaint.assigned_officer_id %}
+                                            Officer assigned
+                                        {% else %}
+                                            <span class="text-muted">
+                                                Awaiting assignment
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- Priority -->
+                                    <td>
+                                        <span class="badge text-bg-{{ priority_colors.get(complaint.priority, 'secondary') }}">
+                                            {{ complaint.priority }}
+                                        </span>
+                                    </td>
+
+                                    <!-- Status -->
+                                    <td>
+                                        <span class="badge text-bg-{{ status_colors.get(complaint.status, 'secondary') }}">
+                                            {{ complaint.status }}
+                                        </span>
+                                    </td>
+
+                                    <!-- Submission Date -->
+                                    <td>
+                                        {% if complaint.created_at %}
+                                            {{ complaint.created_at.strftime('%d %b %Y') }}
+                                        {% else %}
+                                            Not available
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- Tracking Link -->
+                                    <td class="text-center">
+                                        <a href="{{ url_for('complaints.detail', complaint_id=complaint.id) }}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            Track Complaint
+                                        </a>
+                                    </td>
+                                </tr>
+
+                            {% endfor %}
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-muted small mt-3">
+            Total complaints: {{ complaints|length }}
+        </p>
+
+    {% else %}
+
+        <!-- Empty State -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+
+                <div class="mb-3">
+                    <span class="display-4">📋</span>
+                </div>
+
+                <h4 class="fw-bold">No Complaints Yet</h4>
+
+                <p class="text-muted">
+                    You have not submitted any complaints.
+                    Submit a complaint to report a civic problem.
+                </p>
+
+                <a href="{{ url_for('complaints.create') }}"
+                   class="btn btn-primary mt-2">
+                    Submit Your First Complaint
+                </a>
+
+            </div>
+        </div>
+
+    {% endif %}
+
+</div>
+{% endblock %}

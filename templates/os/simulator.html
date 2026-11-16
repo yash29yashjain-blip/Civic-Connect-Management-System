@@ -1,0 +1,106 @@
+
+{% extends "base.html" %}
+{% block title %}OS Simulator | Civic Connect{% endblock %}
+
+{% block content %}
+<p class="eyebrow">OPERATING SYSTEMS LAB</p>
+<h1>OS Algorithm Simulator</h1>
+<p class="muted">Experiment with CPU scheduling, safe resource allocation, and deadlock detection.</p>
+
+<section class="card">
+<form method="post" id="simulator-form">
+    <label for="algorithm">Select algorithm</label>
+    <select name="algorithm" id="algorithm">
+        <option value="fcfs" {% if algorithm == 'fcfs' %}selected{% endif %}>FCFS Scheduling</option>
+        <option value="priority" {% if algorithm == 'priority' %}selected{% endif %}>Priority Scheduling</option>
+        <option value="round_robin" {% if algorithm == 'round_robin' %}selected{% endif %}>Round Robin Scheduling</option>
+        <option value="bankers" {% if algorithm == 'bankers' %}selected{% endif %}>Banker's Algorithm</option>
+        <option value="deadlock" {% if algorithm == 'deadlock' %}selected{% endif %}>Deadlock Detection</option>
+    </select>
+
+    <div id="process-fields">
+        <h2>Process inputs</h2>
+        <p class="muted">Fill at least one row. Burst time must be greater than zero.</p>
+        <div class="table-wrap"><table>
+            <thead><tr><th>Process ID</th><th>Arrival time</th><th>Burst time</th><th>Priority</th></tr></thead>
+            <tbody>
+            {% for i in range(1, 6) %}
+            <tr>
+                <td><input name="pid" value="{% if i == 1 %}P1{% elif i == 2 %}P2{% elif i == 3 %}P3{% endif %}" aria-label="Process {{ i }} ID"></td>
+                <td><input type="number" name="arrival" value="0" min="0" aria-label="Process {{ i }} arrival"></td>
+                <td><input type="number" name="burst" value="{% if i == 1 %}5{% elif i == 2 %}3{% elif i == 3 %}2{% else %}1{% endif %}" min="1" aria-label="Process {{ i }} burst"></td>
+                <td><input type="number" name="priority" value="{{ i }}" min="0" aria-label="Process {{ i }} priority"></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table></div>
+        <div class="form-grid">
+            <div><label for="quantum">Round Robin quantum</label><input id="quantum" name="quantum" type="number" value="2" min="1"></div>
+        </div>
+    </div>
+
+    <div id="resource-fields">
+        <h2>Resource allocation inputs</h2>
+        <p>Enter one row per process; separate resource values with commas.</p>
+        <label for="allocation">Allocation matrix</label>
+        <textarea id="allocation" name="allocation" rows="3">0,1,0
+2,0,0
+3,0,2</textarea>
+
+        <label for="maximum">Maximum matrix (Banker's algorithm)</label>
+        <textarea id="maximum" name="maximum" rows="3">7,5,3
+3,2,2
+9,0,2</textarea>
+
+        <label for="request_matrix">Current request matrix (deadlock detection)</label>
+        <textarea id="request_matrix" name="request_matrix" rows="3">0,0,0
+0,0,0
+0,0,0</textarea>
+
+        <label for="available">Available vector</label>
+        <input id="available" name="available" value="3,3,2">
+    </div>
+
+    <button class="btn" type="submit">Run simulation</button>
+</form>
+</section>
+
+{% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+{% if result %}
+<section class="card">
+    <h2>Simulation result</h2>
+    {% if result.algorithm %}<p><strong>Algorithm:</strong> {{ result.algorithm }}</p>{% endif %}
+
+    {% if result.processes %}
+        <p><strong>Average waiting time:</strong> {{ result.average_waiting }}</p>
+        <p><strong>Average turnaround time:</strong> {{ result.average_turnaround }}</p>
+        <p><strong>Execution order:</strong> {{ result.execution_order | join(' → ') }}</p>
+        <div class="table-wrap"><table>
+            <thead><tr><th>Process</th><th>Arrival</th><th>Burst</th><th>Completion</th><th>Turnaround</th><th>Waiting</th></tr></thead>
+            <tbody>{% for p in result.processes %}
+            <tr><td>{{ p.pid }}</td><td>{{ p.arrival }}</td><td>{{ p.burst }}</td><td>{{ p.completion }}</td><td>{{ p.turnaround }}</td><td>{{ p.waiting }}</td></tr>
+            {% endfor %}</tbody>
+        </table></div>
+    {% endif %}
+
+    {% if result.safe is defined %}
+        <p><strong>{{ result.message }}</strong></p>
+        <p>Safe sequence: {{ result.safe_sequence | join(' → ') if result.safe_sequence else 'None' }}</p>
+        <h3>Need matrix</h3><pre>{{ result.need_matrix | tojson(indent=2) }}</pre>
+    {% endif %}
+
+    {% if result.deadlock_detected is defined %}
+        <p><strong>{{ result.message }}</strong></p>
+        <p>Processes that could not finish: {{ result.deadlocked_processes | join(', ') if result.deadlocked_processes else 'None' }}</p>
+        <p>Completed sequence: {{ result.completed_sequence | join(' → ') if result.completed_sequence else 'None' }}</p>
+    {% endif %}
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/simulator.js') }}"></script>
+{% endblock %}
